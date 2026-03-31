@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>GotaRopos POS – Laporan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --primary: #3B5BDB; --accent: #51CF66; --bg: #F0F4FF; --card: #FFFFFF; --text: #1A1D2E; --muted: #868E96; --border: #E9ECEF; --nav-h: 72px; }
+    html, body { height: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background: #D8E4FF; display: flex; justify-content: center; align-items: center; }
+    .phone { width: 390px; height: 844px; background: var(--bg); border-radius: 48px; overflow: hidden; box-shadow: 0 32px 80px rgba(59,91,219,.25), 0 0 0 1px rgba(0,0,0,.08); position: relative; display: flex; flex-direction: column; }
+    .status-bar { display: flex; justify-content: space-between; align-items: center; padding: 14px 28px 6px; font-size: 12px; font-weight: 700; color: var(--text); flex-shrink: 0; }
+    .status-bar .notch { width: 120px; height: 28px; background: #111; border-radius: 99px; }
+    .status-icons { display: flex; gap: 6px; align-items: center; }
+    .scroll-content { flex: 1; overflow-y: auto; padding: 0 0 calc(var(--nav-h) + 8px); scrollbar-width: none; }
+    .scroll-content::-webkit-scrollbar { display: none; }
+    .page-header { padding: 12px 22px 16px; display: flex; align-items: center; gap: 12px; }
+    .page-header h1 { font-size: 20px; font-weight: 800; color: var(--text); flex: 1; }
+    .icon-btn { width: 40px; height: 40px; background: var(--card); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,.07); cursor: pointer; text-decoration: none; }
+
+    /* PERIOD */
+    .period-row { padding: 0 22px 16px; display: flex; gap: 8px; }
+    .period-btn { flex: 1; padding: 9px; border-radius: 12px; font-size: 12px; font-weight: 700; background: var(--card); color: var(--muted); border: none; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.05); }
+    .period-btn.active { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(59,91,219,.35); }
+
+    /* KPI GRID */
+    .kpi-grid { padding: 0 22px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .kpi-card { background: var(--card); border-radius: 16px; padding: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+    .kpi-card .kc-icon { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; font-size: 14px; }
+    .bg-blue-light  { background: #EEF2FF; color: #3B5BDB; }
+    .bg-green-light { background: #D1FAE5; color: #27AE60; }
+    .bg-orange-light{ background: #FEF3C7; color: #D97706; }
+    .bg-red-light   { background: #FEE2E2; color: #DC2626; }
+    .kpi-card .kc-label { font-size: 10px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+    .kpi-card .kc-val   { font-size: 18px; font-weight: 800; color: var(--text); }
+    .kpi-card .kc-change { font-size: 10px; font-weight: 700; margin-top: 4px; }
+    .kc-change.up   { color: #27AE60; }
+    .kc-change.down { color: #DC2626; }
+
+    /* CHART */
+    .chart-section { margin: 0 22px 18px; background: var(--card); border-radius: 20px; padding: 16px; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+    .chart-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .chart-sub   { font-size: 11px; color: var(--muted); margin-bottom: 14px; }
+    .chart-wrap  { height: 140px; position: relative; }
+
+    /* TOP PRODUCTS */
+    .section-header { padding: 0 22px 12px; display: flex; justify-content: space-between; align-items: center; }
+    .section-header h3 { font-size: 15px; font-weight: 700; color: var(--text); }
+    .section-header a  { font-size: 12px; color: var(--primary); font-weight: 600; text-decoration: none; }
+
+    .top-products { padding: 0 22px; display: flex; flex-direction: column; gap: 10px; }
+    .tp-item { background: var(--card); border-radius: 14px; padding: 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+    .tp-rank { width: 28px; height: 28px; border-radius: 8px; background: #EEF2FF; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: var(--primary); flex-shrink: 0; }
+    .tp-rank.gold   { background: #FFF9DB; color: #D97706; }
+    .tp-rank.silver { background: #F1F3F5; color: #868E96; }
+    .tp-rank.bronze { background: #FFF0E0; color: #9C4221; }
+    .tp-info { flex: 1; }
+    .tp-info .tp-name  { font-size: 13px; font-weight: 700; color: var(--text); }
+    .tp-info .tp-count { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .tp-bar-wrap { flex: 1; }
+    .tp-bar-bg { height: 6px; background: #EEF2FF; border-radius: 99px; overflow: hidden; margin-bottom: 4px; }
+    .tp-bar { height: 100%; background: var(--primary); border-radius: 99px; }
+    .tp-revenue { font-size: 12px; font-weight: 700; color: var(--text); text-align: right; }
+
+    .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: var(--nav-h); background: var(--card); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-around; padding: 0 10px 10px; box-shadow: 0 -4px 20px rgba(0,0,0,.08); }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: var(--muted); font-size: 10px; font-weight: 600; padding: 6px 14px; border-radius: 14px; }
+    .nav-item i { font-size: 20px; }
+    .nav-item.active { background: var(--primary); color: #fff; box-shadow: 0 4px 14px rgba(59,91,219,.4); }
+    .nav-item.active i { font-size: 18px; }
+  </style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span>9:41</span><div class="notch"></div>
+    <div class="status-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="scroll-content">
+    <div class="page-header">
+      <a href="index.html" class="icon-btn"><i class="fas fa-arrow-left"></i></a>
+      <h1>Laporan</h1>
+      <div class="icon-btn"><i class="fas fa-share-from-square"></i></div>
+    </div>
+
+    <!-- PERIOD -->
+    <div class="period-row">
+      <button class="period-btn">Hari</button>
+      <button class="period-btn active">Minggu</button>
+      <button class="period-btn">Bulan</button>
+      <button class="period-btn">Tahun</button>
+    </div>
+
+    <!-- KPI -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kc-icon bg-blue-light"><i class="fas fa-dollar-sign"></i></div>
+        <div class="kc-label">Pendapatan</div>
+        <div class="kc-val">Rp 4,82 Jt</div>
+        <div class="kc-change up">↑ +5.9% vs minggu lalu</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kc-icon bg-green-light"><i class="fas fa-shopping-cart"></i></div>
+        <div class="kc-label">Total Transaksi</div>
+        <div class="kc-val">142</div>
+        <div class="kc-change up">↑ +8 transaksi</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kc-icon bg-orange-light"><i class="fas fa-box"></i></div>
+        <div class="kc-label">Produk Terjual</div>
+        <div class="kc-val">6.983</div>
+        <div class="kc-change up">↑ +2.3%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kc-icon bg-red-light"><i class="fas fa-ban"></i></div>
+        <div class="kc-label">Order Dibatal</div>
+        <div class="kc-val">7</div>
+        <div class="kc-change down">↑ +2 dibanding biasa</div>
+      </div>
+    </div>
+
+    <!-- CHART -->
+    <div class="chart-section">
+      <div class="chart-title">Grafik Penjualan</div>
+      <div class="chart-sub">7 hari terakhir</div>
+      <div class="chart-wrap">
+        <canvas id="salesChart"></canvas>
+      </div>
+    </div>
+
+    <!-- TOP PRODUCTS -->
+    <div class="section-header">
+      <h3>Produk Terlaris</h3>
+      <a href="history.html">Lihat Semua</a>
+    </div>
+    <div class="top-products">
+      <div class="tp-item">
+        <div class="tp-rank gold">1</div>
+        <div class="tp-info">
+          <div class="tp-name">Nasi Goreng Special</div>
+          <div class="tp-count">1.240 terjual</div>
+        </div>
+        <div class="tp-bar-wrap">
+          <div class="tp-bar-bg"><div class="tp-bar" style="width:90%;"></div></div>
+          <div class="tp-revenue" style="color:var(--primary)">Rp 22,3 Jt</div>
+        </div>
+      </div>
+      <div class="tp-item">
+        <div class="tp-rank silver">2</div>
+        <div class="tp-info">
+          <div class="tp-name">Kopi Susu</div>
+          <div class="tp-count">980 terjual</div>
+        </div>
+        <div class="tp-bar-wrap">
+          <div class="tp-bar-bg"><div class="tp-bar" style="width:70%;background:#868E96;"></div></div>
+          <div class="tp-revenue" style="color:#868E96">Rp 9,8 Jt</div>
+        </div>
+      </div>
+      <div class="tp-item">
+        <div class="tp-rank bronze">3</div>
+        <div class="tp-info">
+          <div class="tp-name">Ayam Bakar</div>
+          <div class="tp-count">760 terjual</div>
+        </div>
+        <div class="tp-bar-wrap">
+          <div class="tp-bar-bg"><div class="tp-bar" style="width:55%;background:#D97706;"></div></div>
+          <div class="tp-revenue" style="color:#D97706">Rp 16,7 Jt</div>
+        </div>
+      </div>
+      <div class="tp-item">
+        <div class="tp-rank">4</div>
+        <div class="tp-info">
+          <div class="tp-name">Mie Ayam Bakso</div>
+          <div class="tp-count">540 terjual</div>
+        </div>
+        <div class="tp-bar-wrap">
+          <div class="tp-bar-bg"><div class="tp-bar" style="width:40%;"></div></div>
+          <div class="tp-revenue">Rp 8,1 Jt</div>
+        </div>
+      </div>
+    </div>
+    <div style="height:16px;"></div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a class="nav-item" href="index.html"><i class="fas fa-house"></i>Home</a>
+    <a class="nav-item" href="orders.html"><i class="fas fa-receipt"></i>Orders</a>
+    <a class="nav-item" href="products.html"><i class="fas fa-box-open"></i>Produk</a>
+    <a class="nav-item active" href="report.html"><i class="fas fa-chart-bar"></i>Laporan</a>
+    <a class="nav-item" href="settings.html"><i class="fas fa-gear"></i>Setelan</a>
+  </nav>
+</div>
+
+<script>
+  document.querySelectorAll('.period-btn').forEach(b => {
+    b.addEventListener('click', () => { document.querySelectorAll('.period-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); });
+  });
+
+  const ctx = document.getElementById('salesChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+      datasets: [{
+        label: 'Pendapatan',
+        data: [580000, 720000, 650000, 890000, 760000, 980000, 240000],
+        backgroundColor: (ctx) => {
+          const i = ctx.dataIndex;
+          return i === 5 ? '#3B5BDB' : '#BAC8FF';
+        },
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: ctx => 'Rp ' + (ctx.raw/1000).toFixed(0) + 'k' }
+      }},
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 11, weight: '700' }, color: '#868E96' } },
+        y: { display: false, grid: { display: false } }
+      }
+    }
+  });
+</script>
+</body>
+</html>
